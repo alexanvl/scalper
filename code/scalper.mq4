@@ -8,19 +8,19 @@
 
 #define MAGICMA  20131111
 //--- input parameters
-//0:fst 1:ts 2:dst 3:dts
-input int      TRADE_MODE=1;
-input double   TRADE_SIZE=0.1;
-input int      STOP=360;
-input int      TARGET=300;
-input int      BOUNCE_SPREAD=340;
-input double   MAX_RISK = 0.02;
+//0:fixed stop/target 1:trailing stop 2:dynamic stop/target 3:dynamic trailing stop
+input int      TRADE_MODE = 1;
+input double   TRADE_SIZE = 0.1;
+input int      STOP = 360;
+input int      TARGET = 300;
+input int      BOUNCE_SPREAD = 340;
+input double   MAX_RISK_PCT = 0.5;
 const /*input*/ int      CROSS_UPPER=75;  
 const /*input*/ int      CROSS_LOWER=25;
 input bool     MARTINGALE=false;
 input int      HOUR_START=8;
-input int      HOUR_END=9;
-input int ATR_PERIOD = 21;
+input int      HOUR_END=11;
+const /*input*/ int ATR_PERIOD = 14;
 
 //--- Global vars
 int m_bounceState = 0;
@@ -35,7 +35,22 @@ double GetTradeSize(double pips)
 {
    double tradeSize = TRADE_SIZE;
    
-   
+   switch (TRADE_MODE) {
+      case 2:
+      case 3:
+      {
+         double tickValue = (MarketInfo(Symbol(),MODE_TICKVALUE));
+         
+         if(Digits == 5 || Digits == 3){
+            tickValue = tickValue*10;
+         }
+         
+         double capital = AccountBalance()*MAX_RISK_PCT/100;
+         tradeSize =  NormalizeDouble(capital/pips/tickValue, 2);
+         //Print("balance ",AccountBalance(),", risk ",capital,", sl_pips ",pips,", Lots ",tradeSize,", tickValue ",tickValue);
+         break;
+      }
+   }
    
    if (MARTINGALE) {
       if (CheckLoss()) {
@@ -44,8 +59,7 @@ double GetTradeSize(double pips)
          m_martingale = 1;
       }
 
-      printf("MARTINGALE "+(string)m_martingale);
-      tradeSize = TRADE_SIZE * m_martingale;
+      tradeSize = tradeSize * m_martingale;
    }
    
    return tradeSize;
@@ -87,6 +101,7 @@ bool CheckLoss()
 
 double GetBounceSignal()
 {
+
    double lower = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,1);
    double upper = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_UPPER,1);
    double distance = upper - lower;
@@ -100,23 +115,46 @@ double GetBounceSignal()
       if (High[1] > upper) {
          //printf("SETTING BOUNCE STATE SELL");
          m_bounceState = -1;
+         m_signalBounce = 0;
       }
       if (Low[1] < lower) {
          //printf("SETTING BOUNCE STATE BUY");
          m_bounceState = 1;
+         m_signalBounce = 0;
       }
    }
    //sell
-   if (m_bounceState == -1 && Close[1] < upper /*&& Close[1] < Open[1]*/) {
+   if (m_bounceState == -1 && Close[1] < upper) {
       m_bounceState = 0;
       m_signalBounce = -1;
    }
    //buy
-   if (m_bounceState == 1 && Close[1] > lower /*&& Close[1] > Open[1]*/) {
+   if (m_bounceState == 1 && Close[1] > lower) {
       m_bounceState = 0;
       m_signalBounce = 1;
    }
    
+/*
+   double lower2 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,2);
+   double upper2 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_UPPER,2);
+   double lower1 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,1);
+   double upper1 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_UPPER,1);
+   
+   double distance = upper1 - lower1;
+   
+   if (distance < (BOUNCE_SPREAD*Point)) {
+     m_signalBounce = 0;
+     return m_signalBounce;
+   }
+   
+   if (Close[2] >= upper2 && Close[1] <= upper1) {
+      m_signalBounce = -1;
+   }
+   
+   if (Close[2] <= lower2 && Close[1] >= lower1) {
+      m_signalBounce = 1;
+   }
+   */
    return m_signalBounce;
 }
 
@@ -152,6 +190,9 @@ void CheckForOpen()
    double cs;
    double limit = 0;
    double stop = 0;
+   double stopLevel = MarketInfo(Symbol(), MODE_STOPLEVEL) + MarketInfo(Symbol(), MODE_SPREAD);
+   double atrLevel = NormalizeDouble((iATR(NULL,0,ATR_PERIOD,1)*3), Digits);
+   
    int currHour = TimeHour(TimeGMT());
 //--- go trading only for first tiks of new bar
    if(Volume[0]>1 || currHour < HOUR_START || currHour >= HOUR_END) 
@@ -202,21 +243,21 @@ void CheckForOpen()
          // Dynamic stop target
          case 2:
          {
-            limit = tradePrice + (iATR(NULL,0,ATR_PERIOD,1)*3);
-            stop = tradePrice - (limitMultiplier*(limit - tradePrice));
+            limit = tradePrice + (limitMultiplier*atrLevel);
+            stop = tradePrice - (limitMultiplier*atrLevel);
             break;
          }
          // Dynamic trailing stop
          case 3:
          {
             limit = 0;
-            m_trailingStop = (iATR(NULL,0,ATR_PERIOD,1)*3);
+            m_trailingStop = atrLevel;
             stop = tradePrice - (limitMultiplier*m_trailingStop);
             break;
          }
       }
-      
-      if (!OrderSend(Symbol(),tradeSide,GetTradeSize(MathAbs(tradePrice-stop)),tradePrice,3,stop,limit,"",MAGICMA,0, tradeSide == OP_SELL ? Red : Blue)) {
+
+      if (!OrderSend(Symbol(),tradeSide,GetTradeSize(MathAbs(tradePrice-stop)/Point/10),tradePrice,3,stop,limit,"",MAGICMA,0, tradeSide == OP_SELL ? Red : Blue)) {
          printf("ORDER SEND ERROR");
       }
    }
