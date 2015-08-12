@@ -10,7 +10,7 @@
 //--- input parameters
 //0:fixed stop/target 1:trailing stop 2:dynamic stop/target 3:dynamic trailing stop
 input int      TRADE_MODE = 1;
-input double   TRADE_SIZE = 0.1;
+const /*input*/ double   TRADE_SIZE = 0.1;
 input int      STOP = 360;
 input int      TARGET = 300;
 input int      BOUNCE_SPREAD = 340;
@@ -20,7 +20,7 @@ const /*input*/ int      CROSS_LOWER=25;
 input bool     MARTINGALE=false;
 input int      HOUR_START=8;
 input int      HOUR_END=11;
-const /*input*/ int ATR_PERIOD = 14;
+/*const*/ input int ATR_PERIOD = 14;
 
 //--- Global vars
 int m_bounceState = 0;
@@ -36,6 +36,8 @@ double GetTradeSize(double pips)
    double tradeSize = TRADE_SIZE;
    
    switch (TRADE_MODE) {
+      case 0:
+      case 1:
       case 2:
       case 3:
       {
