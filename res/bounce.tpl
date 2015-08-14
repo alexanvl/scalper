@@ -55,7 +55,7 @@ show_data=1
 </indicator>
 <indicator>
 name=Moving Average
-period=200
+period=140
 shift=0
 method=0
 apply=0
