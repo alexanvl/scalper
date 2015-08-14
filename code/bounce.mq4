@@ -169,9 +169,11 @@ double GetCrossSignal()
    if (m_crossState == 0) {
       if (d1 > CROSS_UPPER && k1 > CROSS_UPPER && k1 > d1)  {
          m_crossState = -1;
+         m_signalCross = 0;
       }
       if (d1 < CROSS_LOWER && k1 < CROSS_LOWER && k1 < d1)  {
          m_crossState = 1;
+         m_signalCross = 0;
       }
    }
    //sell
