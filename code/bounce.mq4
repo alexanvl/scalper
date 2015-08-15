@@ -21,7 +21,7 @@ const /*input*/ bool     MARTINGALE=false;
 input int      HOUR_START=7;
 input int      HOUR_END=11;
 const /*input*/ int ATR_PERIOD = 14;
-const /*input*/ int MA_PERIOD = 140;
+input int MA_PERIOD = 140;
 
 //--- Global vars
 int m_bounceState = 0;
@@ -104,40 +104,6 @@ bool CheckLoss()
 
 double GetBounceSignal()
 {
-
-   double lower = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,1);
-   double upper = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_UPPER,1);
-   double distance = upper - lower;
-   
-   if (distance < (BOUNCE_SPREAD*Point)) {
-     m_signalBounce = 0;
-     return m_signalBounce;
-   }
-
-   if (m_bounceState == 0) {
-      if (High[1] > upper) {
-         //printf("SETTING BOUNCE STATE SELL");
-         m_bounceState = -1;
-         m_signalBounce = 0;
-      }
-      if (Low[1] < lower) {
-         //printf("SETTING BOUNCE STATE BUY");
-         m_bounceState = 1;
-         m_signalBounce = 0;
-      }
-   }
-   //sell
-   if (m_bounceState == -1 && Close[1] < upper) {
-      m_bounceState = 0;
-      m_signalBounce = -1;
-   }
-   //buy
-   if (m_bounceState == 1 && Close[1] > lower) {
-      m_bounceState = 0;
-      m_signalBounce = 1;
-   }
-   
-/*
    double lower2 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,2);
    double upper2 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_UPPER,2);
    double lower1 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,1);
@@ -157,7 +123,7 @@ double GetBounceSignal()
    if (Close[2] <= lower2 && Close[1] >= lower1) {
       m_signalBounce = 1;
    }
-   */
+
    return m_signalBounce;
 }
 
@@ -165,25 +131,15 @@ double GetCrossSignal()
 {
    double k1 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_MAIN,1);
    double d1 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_SIGNAL,1);
+   double k2 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_MAIN,2);
+   double d2 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_SIGNAL,2);
    
-   if (m_crossState == 0) {
-      if (d1 > CROSS_UPPER && k1 > CROSS_UPPER && k1 > d1)  {
-         m_crossState = -1;
-         m_signalCross = 0;
-      }
-      if (d1 < CROSS_LOWER && k1 < CROSS_LOWER && k1 < d1)  {
-         m_crossState = 1;
-         m_signalCross = 0;
-      }
-   }
    //sell
-   if (m_crossState == -1 && k1 < d1) {
-      m_crossState = 0;
+   if (k2 > d2 && d2 >= CROSS_UPPER && k1 < d1) {
       m_signalCross = -1;//(k1 - d1);
    }
    //buy
-   if (m_crossState == 1 && k1 > d1) {
-      m_crossState = 0;
+   if (k2 < d2 && d2 <= CROSS_LOWER && k1 > d1) {
       m_signalCross = 1;//(k1 - d1);
    }
    return m_signalCross;///SIGNAL_CROSS_MAX;
