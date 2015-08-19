@@ -111,19 +111,20 @@ double GetBounceSignal()
    
    double distance = upper1 - lower1;
    
-   if (distance < (BOUNCE_SPREAD*Point)) {
-     m_signalBounce = 0;
-     return m_signalBounce;
-   }
-   
    if (Close[2] >= upper2 && Close[1] <= upper1) {
       m_signalBounce = -1;
    }
-   
+   else
    if (Close[2] <= lower2 && Close[1] >= lower1) {
       m_signalBounce = 1;
    }
-
+   else
+      m_signalBounce = 0;
+      
+   if (distance < (BOUNCE_SPREAD*Point)) {
+     m_signalBounce = 0;
+   }
+      
    return m_signalBounce;
 }
 
@@ -138,10 +139,14 @@ double GetCrossSignal()
    if (k2 > d2 && d2 >= CROSS_UPPER && k1 < d1) {
       m_signalCross = -1;//(k1 - d1);
    }
+   else
    //buy
    if (k2 < d2 && d2 <= CROSS_LOWER && k1 > d1) {
       m_signalCross = 1;//(k1 - d1);
    }
+   else 
+      m_signalCross = 0;
+      
    return m_signalCross;///SIGNAL_CROSS_MAX;
 }
 
