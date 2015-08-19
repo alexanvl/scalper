@@ -22,6 +22,8 @@ input int      HOUR_START=7;
 input int      HOUR_END=11;
 const /*input*/ int ATR_PERIOD = 14;
 input int MA_PERIOD = 140;
+input int BB_PERIOD = 20;
+input int STOCH_PERIOD = 5;
 
 //--- Global vars
 int m_bounceState = 0;
@@ -104,10 +106,10 @@ bool CheckLoss()
 
 double GetBounceSignal()
 {
-   double lower2 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,2);
-   double upper2 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_UPPER,2);
-   double lower1 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_LOWER,1);
-   double upper1 = iBands(NULL,0,20,2,0,PRICE_CLOSE,MODE_UPPER,1);
+   double lower2 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_LOWER,2);
+   double upper2 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_UPPER,2);
+   double lower1 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_LOWER,1);
+   double upper1 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_UPPER,1);
    
    double distance = upper1 - lower1;
    
@@ -130,10 +132,10 @@ double GetBounceSignal()
 
 double GetCrossSignal()
 {
-   double k1 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_MAIN,1);
-   double d1 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_SIGNAL,1);
-   double k2 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_MAIN,2);
-   double d2 = iStochastic(NULL,0,5,3,3,MODE_SMA,0,MODE_SIGNAL,2);
+   double k1 = iStochastic(NULL,0,STOCH_PERIOD,3,3,MODE_SMA,0,MODE_MAIN,1);
+   double d1 = iStochastic(NULL,0,STOCH_PERIOD,3,3,MODE_SMA,0,MODE_SIGNAL,1);
+   double k2 = iStochastic(NULL,0,STOCH_PERIOD,3,3,MODE_SMA,0,MODE_MAIN,2);
+   double d2 = iStochastic(NULL,0,STOCH_PERIOD,3,3,MODE_SMA,0,MODE_SIGNAL,2);
    
    //sell
    if (k2 > d2 && d2 >= CROSS_UPPER && k1 < d1) {
