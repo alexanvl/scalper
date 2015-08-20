@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                                                      scalper.mq4 |
+//|                                                      bounce.mq4 |
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2015, LexFX."
 #property link      ""
@@ -9,10 +9,10 @@
 #define MAGICMA  20131111
 //--- input parameters
 //0:fixed stop/target 1:trailing stop 2:dynamic stop/target 3:dynamic trailing stop
-input int      TRADE_MODE = 1;
+const /*input*/ int      TRADE_MODE = 1;
 const /*input*/ double   TRADE_SIZE = 0.1;
 input int      STOP = 360;
-input int      TARGET = 300;
+const /*input*/ int      TARGET = 300;
 input int      BOUNCE_SPREAD = 340;
 input double   MAX_RISK_PCT = 0.25;
 const /*input*/ int      CROSS_UPPER=80;  
@@ -113,15 +113,15 @@ double GetBounceSignal()
    
    double distance = upper1 - lower1;
    
-   if (Close[2] >= upper2 && Close[1] <= upper1) {
+   if (/*Close[2] >= upper2 && */Close[1] > upper1) {
       m_signalBounce = -1;
    }
    else
-   if (Close[2] <= lower2 && Close[1] >= lower1) {
+   if (/*Close[2] <= lower2 &&*/ Close[1] < lower1) {
       m_signalBounce = 1;
    }
-   else
-      m_signalBounce = 0;
+   //else
+      //m_signalBounce = 0;
       
    if (distance < (BOUNCE_SPREAD*Point)) {
      m_signalBounce = 0;
