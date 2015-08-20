@@ -106,12 +106,13 @@ bool CheckLoss()
 
 double GetBounceSignal()
 {
-   double lower2 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_LOWER,2);
-   double upper2 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_UPPER,2);
+   //double lower2 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_LOWER,2);
+   //double upper2 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_UPPER,2);
    double lower1 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_LOWER,1);
    double upper1 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_UPPER,1);
    
    double distance = upper1 - lower1;
+   double spread = BOUNCE_SPREAD*Point;
    
    if (/*Close[2] >= upper2 && */Close[1] > upper1) {
       m_signalBounce = -1;
@@ -120,10 +121,8 @@ double GetBounceSignal()
    if (/*Close[2] <= lower2 &&*/ Close[1] < lower1) {
       m_signalBounce = 1;
    }
-   //else
-      //m_signalBounce = 0;
-      
-   if (distance < (BOUNCE_SPREAD*Point)) {
+
+   if (distance < spread) {
      m_signalBounce = 0;
    }
       
@@ -138,12 +137,12 @@ double GetCrossSignal()
    double d2 = iStochastic(NULL,0,STOCH_PERIOD,3,3,MODE_SMA,0,MODE_SIGNAL,2);
    
    //sell
-   if (k2 > d2 && d2 >= CROSS_UPPER && k1 < d1) {
+   if (k2 > d2 && d2 >= CROSS_UPPER && k1 < d1){// && d1 < CROSS_UPPER) {
       m_signalCross = -1;//(k1 - d1);
    }
    else
    //buy
-   if (k2 < d2 && d2 <= CROSS_LOWER && k1 > d1) {
+   if (k2 < d2 && d2 <= CROSS_LOWER && k1 > d1){// && d1 > CROSS_LOWER) {
       m_signalCross = 1;//(k1 - d1);
    }
    else 
@@ -240,8 +239,8 @@ void ResetSignals()
 {
    m_bounceState = 0;
    m_crossState = 0;
-   m_signalBounce = 0;
-   m_signalCross = 0;
+  // m_signalBounce = 0;
+  // m_signalCross = 0;
    m_trailingStop = 0;
    m_highWaterMark = 0;
 }
