@@ -1,15 +1,16 @@
 <chart>
-id=130844387099403044
+id=130846015869487437
 symbol=GBPJPY
 period=5
-leftpos=64747
+leftpos=6690
+offline=1
 digits=3
-scale=4
+scale=16
 graph=1
 fore=0
 grid=1
 volume=0
-scroll=1
+scroll=0
 shift=1
 ohlc=1
 one_click=0
@@ -20,8 +21,8 @@ shift_size=20
 fixed_pos=32
 window_left=26
 window_top=26
-window_right=1262
-window_bottom=358
+window_right=1240
+window_bottom=386
 window_type=3
 background_color=0
 foreground_color=16777215
@@ -43,7 +44,7 @@ name=main
 </indicator>
 <indicator>
 name=Bollinger Bands
-period=28
+period=24
 shift=0
 deviations=2.000000
 apply=0
@@ -55,7 +56,7 @@ show_data=1
 </indicator>
 <indicator>
 name=Moving Average
-period=160
+period=96
 shift=0
 method=0
 apply=0
@@ -72,7 +73,7 @@ height=50
 fixed_height=0
 <indicator>
 name=Stochastic Oscillator
-kperiod=13
+kperiod=12
 dperiod=3
 slowing=3
 method=0
@@ -94,23 +95,5 @@ period_flags=0
 show_data=1
 </indicator>
 </window>
-
-<expert>
-name=bounce
-flags=279
-window_num=0
-<inputs>
-TRADE_MODE=1
-STOP=60
-TARGET=300
-BOUNCE_SPREAD=340
-MAX_RISK_PCT=0.25
-HOUR_START=3
-HOUR_END=23
-MA_PERIOD=140
-BB_PERIOD=20
-STOCH_PERIOD=5
-</inputs>
-</expert>
 </chart>
 

@@ -23,7 +23,7 @@ input int      HOUR_END=11;
 const /*input*/ int ATR_PERIOD = 14;
 input int MA_PERIOD = 140;
 input int BB_PERIOD = 20;
-input int STOCH_PERIOD = 5;
+input int STOCH_PERIOD = 10;
 
 //--- Global vars
 int m_bounceState = 0;
@@ -114,11 +114,11 @@ double GetBounceSignal()
    double distance = upper1 - lower1;
    double spread = BOUNCE_SPREAD*Point;
    
-   if (/*Close[2] >= upper2 && */Close[1] > upper1) {
+   if (/*Close[2] >= upper2 && */High[1] > upper1) {
       m_signalBounce = -1;
    }
    else
-   if (/*Close[2] <= lower2 &&*/ Close[1] < lower1) {
+   if (/*Close[2] <= lower2 &&*/ Low[1] < lower1) {
       m_signalBounce = 1;
    }
 
