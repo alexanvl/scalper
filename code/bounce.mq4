@@ -160,7 +160,7 @@ void CheckForOpen()
    bool positiveSlope = false;
    int currHour = TimeHour(TimeGMT());
 //--- go trading only for first tiks of new bar
-   if(Volume[0]>1 || currHour < HOUR_START || currHour >= HOUR_END) 
+   if(Volume[0]>5 || currHour < HOUR_START || currHour >= HOUR_END) 
       return;
 //--- get slope
    double maNow = iMA(NULL,0, MA_PERIOD, 0, MODE_SMA, PRICE_CLOSE, 1);
