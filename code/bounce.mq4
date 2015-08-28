@@ -11,23 +11,22 @@
 //0:fixed stop/target 1:trailing stop 2:dynamic stop/target 3:dynamic trailing stop
 const /*input*/ int      TRADE_MODE = 1;
 const /*input*/ double   TRADE_SIZE = 0.1;
-input int      STOP = 360;
+input int      STOP = 400;
 const /*input*/ int      TARGET = 300;
 input int      BOUNCE_SPREAD = 340;
-input double   MAX_RISK_PCT = 0.25;
+input double   MAX_RISK_PCT = 1.0;
 const /*input*/ int      CROSS_UPPER=80;  
 const /*input*/ int      CROSS_LOWER=20;
 const /*input*/ bool     MARTINGALE=false;
-input int      HOUR_START=7;
-input int      HOUR_END=11;
+input int      HOUR_START=6;
+input int      HOUR_END=23;
 const /*input*/ int ATR_PERIOD = 14;
-input int MA_PERIOD = 140;
-input int BB_PERIOD = 20;
-input int STOCH_PERIOD = 10;
+input int MA_PERIOD = 96;
+input int BB_PERIOD = 24;
+input int STOCH_PERIOD = 12;
+input int MIN_SLOPE = 400;
 
 //--- Global vars
-int m_bounceState = 0;
-int m_crossState = 0;
 double m_signalBounce = 0;
 double m_signalCross = 0;
 double m_trailingStop = 0;
@@ -81,6 +80,20 @@ int GetCurrentOrder()
       }
    }
    return -1;
+}
+
+double DailyProfit()
+{
+  double profit = 0;
+ 
+  int cnt = OrdersHistoryTotal();
+  for (int i=0; i < cnt; i++) {
+    if (!OrderSelect(i, SELECT_BY_POS, MODE_HISTORY)) continue;
+ 
+    if (TimeDayOfYear(OrderCloseTime()) == DayOfYear() && TimeYear(OrderCloseTime()) == Year()) profit += OrderProfit();
+  }
+ 
+  return (profit);
 }
 
 bool CheckLoss()
@@ -157,25 +170,31 @@ void CheckForOpen()
    double cs;
    double limit = 0;
    double stop = 0;
-   bool positiveSlope = false;
    int currHour = TimeHour(TimeGMT());
+   
 //--- go trading only for first tiks of new bar
-   if(Volume[0]>5 || currHour < HOUR_START || currHour >= HOUR_END) 
+   if(Volume[0]>3 || currHour < HOUR_START || currHour >= HOUR_END) 
       return;
+      
 //--- get slope
    double maNow = iMA(NULL,0, MA_PERIOD, 0, MODE_SMA, PRICE_CLOSE, 1);
    double maThen = iMA(NULL,0, MA_PERIOD, 0, MODE_SMA, PRICE_CLOSE, MA_PERIOD);
-   positiveSlope = maNow > maThen;
+   double slope = (maNow - maThen)/Point;
+   
+   if (MathAbs(slope) < MIN_SLOPE)
+      return;
+      
 //--- get signal
    bs = GetBounceSignal();
    cs = GetCrossSignal();
    double signal = bs+cs;//numer/denom;
    int tradeSide = -1;
-   Print("bounce ",bs,", cross ",cs,", slope ",positiveSlope);
+   Print("bounce ",bs,", cross ",cs,", slope ",slope);
+  
    // buy
-   if (signal == 2 && positiveSlope) {
+   if (signal == 2 && slope > 0) {
       tradeSide = OP_BUY;
-   } else if (signal == -2 && !positiveSlope) {
+   } else if (signal == -2 && slope < 0) {
       tradeSide = OP_SELL;
    }
    
@@ -237,10 +256,6 @@ void CheckForOpen()
 
 void ResetSignals()
 {
-   m_bounceState = 0;
-   m_crossState = 0;
-  // m_signalBounce = 0;
-  // m_signalCross = 0;
    m_trailingStop = 0;
    m_highWaterMark = 0;
 }
