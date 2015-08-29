@@ -13,7 +13,8 @@ const /*input*/ int      TRADE_MODE = 1;
 const /*input*/ double   TRADE_SIZE = 0.1;
 input int      STOP = 400;
 const /*input*/ int      TARGET = 300;
-input int      BOUNCE_SPREAD = 340;
+input int      BOUNCE_SPREAD_MIN = 340;
+input int      BOUNCE_SPREAD_MAX = 1000;
 input double   MAX_RISK_PCT = 1.0;
 const /*input*/ int      CROSS_UPPER=80;  
 const /*input*/ int      CROSS_LOWER=20;
@@ -24,7 +25,9 @@ const /*input*/ int ATR_PERIOD = 14;
 input int MA_PERIOD = 96;
 input int BB_PERIOD = 24;
 input int STOCH_PERIOD = 12;
-input int MIN_SLOPE = 400;
+input int SLOPE_MIN = 400;
+input int SLOPE_MAX = 1000;
+input int SLOPE_LOOKBACK = 96;
 
 //--- Global vars
 double m_signalBounce = 0;
@@ -125,7 +128,8 @@ double GetBounceSignal()
    double upper1 = iBands(NULL,0,BB_PERIOD,2,0,PRICE_CLOSE,MODE_UPPER,1);
    
    double distance = upper1 - lower1;
-   double spread = BOUNCE_SPREAD*Point;
+   double spreadMin = BOUNCE_SPREAD_MIN*Point;
+   double spreadMax = BOUNCE_SPREAD_MAX*Point;
    
    if (/*Close[2] >= upper2 && */High[1] > upper1) {
       m_signalBounce = -1;
@@ -135,7 +139,7 @@ double GetBounceSignal()
       m_signalBounce = 1;
    }
 
-   if (distance < spread) {
+   if (distance < spreadMin || distance > spreadMax) {
      m_signalBounce = 0;
    }
       
@@ -178,10 +182,11 @@ void CheckForOpen()
       
 //--- get slope
    double maNow = iMA(NULL,0, MA_PERIOD, 0, MODE_SMA, PRICE_CLOSE, 1);
-   double maThen = iMA(NULL,0, MA_PERIOD, 0, MODE_SMA, PRICE_CLOSE, MA_PERIOD);
+   double maThen = iMA(NULL,0, MA_PERIOD, 0, MODE_SMA, PRICE_CLOSE, SLOPE_LOOKBACK);
    double slope = (maNow - maThen)/Point;
+   double absSlope = MathAbs(slope);
    
-   if (MathAbs(slope) < MIN_SLOPE)
+   if (absSlope < SLOPE_MIN || absSlope > SLOPE_MAX)
       return;
       
 //--- get signal
