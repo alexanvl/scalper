@@ -62,6 +62,7 @@ int start()
          trade = true;
          price = Ask;
       }
+      else
       //sell
       if (iCustom(Symbol(),0,"Quantum",qde,1,1) > 0 && (trade_side == -1 || trade_side == OP_SELL)) 
       {
@@ -160,6 +161,7 @@ void checkCloseTrades()
             }
          }
          cycles++;
+         trade_side = -1;
       }
    }
 }
